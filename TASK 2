@@ -1,0 +1,83 @@
+# -------------------------------------------
+# CAR PRICE PREDICTION USING MACHINE LEARNING
+# -------------------------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# 1. LOAD THE DATA
+df = pd.read_csv("C:\\Users\\KIIT\\Downloads\\archive (4).zip")  # Replace with your actual filename
+
+print("🔍 Preview of the data:")
+print(df.head())
+
+# 2. DATA CLEANING & PREPROCESSING
+
+# Drop rows with missing values (or you could impute them)
+df.dropna(inplace=True)
+
+# Encode categorical features (Brand, Fuel_Type, etc.)
+categorical_cols = df.select_dtypes(include='object').columns
+
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+
+print("\n✅ Data after encoding:")
+print(df.head())
+
+# 3. FEATURE SELECTION
+
+# Features and target
+X = df.drop('Price', axis=1)  # Make sure 'Price' is your target column
+y = df['Price']
+
+# 4. TRAIN/TEST SPLIT
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 5. FEATURE SCALING
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 6. TRAINING THE MODEL
+
+model = RandomForestRegressor(random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# 7. PREDICTION
+
+y_pred = model.predict(X_test_scaled)
+
+# 8. EVALUATION
+
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+print("\n📊 Model Performance:")
+print(f"MAE: {mae:.2f}")
+print(f"RMSE: {rmse:.2f}")
+print(f"R² Score: {r2:.2f}")
+
+# 9. VISUALIZATION: Actual vs Predicted
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=y_test, y=y_pred)
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Actual vs Predicted Car Prices")
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')
+plt.tight_layout()
+plt.show()
